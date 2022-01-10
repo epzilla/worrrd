@@ -48,11 +48,16 @@ if (savedState) {
 
 gameState.boardState.forEach((row, rowIndex) => {
   if (row.length) {
-    gameState.rowIndex = rowIndex + 1;
+    if (gameState.evaluations[rowIndex]?.length) {
+      gameState.rowIndex = rowIndex + 1;
+    }
     row.split("").forEach((letter, cellIndex) => {
       const cell = document.getElementById(`${rowIndex}-${cellIndex}`);
+      const backSide = document.getElementById(`${rowIndex}-${cellIndex}-back`);
       cell.innerHTML = letter;
-      cell.classList.add(gameState.evaluations[rowIndex][cellIndex]);
+      backSide.innerHTML = letter;
+      backSide.classList.add(gameState.evaluations[rowIndex][cellIndex]);
+      backSide.parentElement.classList.add("reveal");
     });
   }
 });
@@ -61,10 +66,14 @@ function animateLetter(rowIndex, key) {
   const cell = document.getElementById(
     `${rowIndex}-${gameState.boardState[rowIndex].length - 1}`
   );
+  const backSide = document.getElementById(
+    `${rowIndex}-${gameState.boardState[rowIndex].length - 1}-back`
+  );
   cell.innerHTML = key;
-  cell.classList.add("pop");
+  backSide.innerHTML = key;
+  cell.parentElement.classList.add("pop");
   setTimeout(() => {
-    cell.classList.remove("pop");
+    cell.parentElement.classList.remove("pop");
   }, 50);
 }
 
@@ -72,7 +81,11 @@ function deleteLetter(rowIndex) {
   const cell = document.getElementById(
     `${rowIndex}-${gameState.boardState[rowIndex].length}`
   );
+  const backSide = document.getElementById(
+    `${rowIndex}-${gameState.boardState[rowIndex].length}-back`
+  );
   cell.innerHTML = "";
+  backSide.innerHTML = "";
 }
 
 function getFakeEval(word) {
@@ -90,6 +103,15 @@ function getFakeEval(word) {
   return Promise.resolve(fakeEval);
 }
 
+function animateRow(rowIndex) {
+  const cells = Array.from(
+    document.querySelectorAll(`#row-${rowIndex} .cell-wrapper`)
+  );
+  for (let i = 0; i < cells.length; i++) {
+    setTimeout(() => cells[i].classList.add("reveal"), i * 500);
+  }
+}
+
 async function submit(rowIndex) {
   const body = await fetch("/check-word", {
     method: "POST",
@@ -101,14 +123,15 @@ async function submit(rowIndex) {
   const { wordEval, match } = await body.json();
   gameState.evaluations[rowIndex] = wordEval;
   wordEval.forEach((val, cellIndex) => {
-    const cell = document.getElementById(`${rowIndex}-${cellIndex}`);
+    const cell = document.getElementById(`${rowIndex}-${cellIndex}-back`);
     cell.classList.add(val);
   });
+  animateRow(rowIndex);
   if (match) {
     gameState.gameStatus = "WIN";
     setTimeout(() => {
       alert("WOOHOOOOOO!");
-    }, 50);
+    }, 2500);
   }
 }
 
@@ -143,5 +166,6 @@ document.addEventListener("keyup", (e) => {
         break;
     }
     console.log(gameState);
+    localStorage.setItem("gameState", JSON.stringify(gameState));
   }
 });

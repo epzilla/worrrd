@@ -6,6 +6,10 @@ body {
 }
 
 .board {
+  user-select: none;
+}
+
+.board {
   display: grid;
   grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr;
   gap: 5px;
@@ -19,7 +23,27 @@ body {
   gap: 5px;
 }
 
+.cell-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  position: relative;
+  transition: all 0.03s ease-in-out;
+  backface-visibility: hidden;
+}
+
+.cell-wrapper.reveal .front {
+  transform: rotateX(-180deg);
+}
+
+.cell-wrapper.reveal .back {
+  transform: rotateX(0deg);
+}
+
 .cell {
+  position: absolute;
   height: 60px;
   width: 60px;
   border: 2px solid #878a8c;
@@ -31,11 +55,16 @@ body {
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
-  transition: all 0.03s ease-in-out;
+  transition: transform 0.5s ease-in-out;
+  backface-visibility: hidden;
 }
 
 .cell:empty {
   border-color: #d3d6da;
+}
+
+.cell.back {
+  transform: rotateX(180deg);
 }
 
 .yep,
